@@ -54,9 +54,12 @@ class ReadersWritersMonitor:
         4. Print a useful log message.
         """
         with self.condition:
+            # Reader can not read while there are writers wanting to write.
             while self.active_writers > 0 or self.waiting_writers > 0:
                 self.condition.wait()
+            # If reader comes to read, then increase one.
             self.active_readers += 1
+            # Useful log message.
             print(f"Reader {reader_id} starts reading. Active readers = {self.active_readers}")
 
 
@@ -70,8 +73,11 @@ class ReadersWritersMonitor:
         3. If this was the last reader, wake waiting threads.
         """
         with self.condition:
+            # When readers deactivate, then decrease one.
             self.active_readers -= 1
+            # Useful log message.
             print(f"Reader {reader_id} stops reading. Active readers = {self.active_readers}")
+            # The monitor will notify all waiting threads when no reader is reading.
             if self.active_readers == 0:
                 self.condition.notify_all()
 
@@ -87,11 +93,15 @@ class ReadersWritersMonitor:
         4. Print a useful log message.
         """
         with self.condition:
+            # Firstly add a waiting writers.
             self.waiting_writers += 1
+            # If there are readers or writer occupying, then wait.
             while self.active_readers > 0 or self.active_writers > 0:
                 self.condition.wait()
+            # No occupying, reduce a waiting writer and add an active writer.
             self.waiting_writers -= 1
             self.active_writers += 1
+            # Useful log message.
             print(f"Writer {writer_id} starts writing. Waiting Writer = {self.waiting_writers}")
 
     def end_write(self, writer_id: int) -> None:
@@ -104,8 +114,11 @@ class ReadersWritersMonitor:
         3. Wake waiting threads.
         """
         with self.condition:
+            # When writer deactivates, then decrease one.
             self.active_writers -= 1
+            # Useful log message.
             print(f"Writer {writer_id} stops writing.")
+            # The monitor will notify all waiting threads when no writer is writing.
             self.condition.notify_all()
 
 # Donot Change this
